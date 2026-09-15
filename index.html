@@ -230,6 +230,10 @@
   </div>
 </div>
 
+<input type="file" id="profileFileInput" accept="image/*" style="display:none" onchange="handleProfileUpload(event)" />
+<input type="file" id="coverFileInput" accept="image/*" style="display:none" onchange="handleCoverUpload(event)" />
+<input type="file" id="homeBannerFileInput" accept="image/*" style="display:none" onchange="handleHomeBannerUpload(event)" />
+
 <script>
 const C = { lavender:'#A88BEA', purple:'#8862D9', blush:'#EC7FA0', peach:'#F0A15E', sage:'#7EC28B' };
 const COVERS = [
@@ -421,7 +425,13 @@ function renderSidebar() {
     }
   });
   html += `<div class="new-topic" onclick="openAddModal('tarefas')">+ Novo tópico</div></div></div>`;
-  html += `<div class="profile-card"><div class="avatar">R</div><div><div style="font-size:12px;">Rhay</div><div style="font-size:10px; color:var(--muted);">Perfil</div></div></div>`;
+  const avatarBg = STORE.profileImage 
+    ? `background-image:url('${STORE.profileImage}'); background-size:cover; background-position:center; color:transparent;` 
+    : '';
+  html += `<div class="profile-card" onclick="triggerProfileUpload()" style="cursor:pointer;" title="Clique para trocar foto de perfil">
+    <div class="avatar" style="${avatarBg}">R</div>
+    <div><div style="font-size:12px;">Rhay</div><div style="font-size:10px; color:var(--muted);">Trocar foto 📷</div></div>
+  </div>`;
   el.innerHTML = html;
 }
 
@@ -518,6 +528,72 @@ function cycleCover(event, id) {
   renderContent();
 }
 
+/* ---------------- Image Upload Handlers ---------------- */
+let currentCoverTopicId = null;
+
+function triggerProfileUpload() {
+  document.getElementById('profileFileInput').click();
+}
+
+function handleProfileUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    STORE.profileImage = evt.target.result;
+    saveStore();
+    renderSidebar();
+  };
+  reader.readAsDataURL(file);
+}
+
+function triggerCoverUpload(topicId, event) {
+  if (event) event.stopPropagation();
+  currentCoverTopicId = topicId;
+  const choice = confirm("Deseja enviar uma foto do seu computador?\n\n[OK] = Escolher Imagem do Computador\n[Cancelar] = Digitar Link (URL) ou Alternar Gradientes Pastel");
+  if (choice) {
+    document.getElementById('coverFileInput').click();
+  } else {
+    const url = prompt("Digite o link (URL) da foto (ou deixe em branco para trocar o gradiente pastel):");
+    if (url === null) return;
+    if (url.trim() !== "") {
+      if (!STORE.covers) STORE.covers = {};
+      STORE.covers[topicId] = url.trim();
+      saveStore();
+    } else {
+      if (STORE.covers) delete STORE.covers[topicId];
+      cycleCover(event, topicId);
+    }
+  }
+}
+
+function handleCoverUpload(e) {
+  const file = e.target.files[0];
+  if (!file || !currentCoverTopicId) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    if (!STORE.covers) STORE.covers = {};
+    STORE.covers[currentCoverTopicId] = evt.target.result;
+    saveStore();
+  };
+  reader.readAsDataURL(file);
+}
+
+function triggerHomeBannerUpload() {
+  document.getElementById('homeBannerFileInput').click();
+}
+
+function handleHomeBannerUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    STORE.homeBannerImage = evt.target.result;
+    saveStore();
+  };
+  reader.readAsDataURL(file);
+}
+
 /* ---------------- Mobile sheet ---------------- */
 function renderSheet() {
   let html = `<div class="sheet-handle"></div>`;
@@ -550,10 +626,14 @@ function pageHeader(eyebrow, title, addType) {
 }
 function coverHeader(topic) {
   const backBtn = currentPage !== 'inicio' ? `<button class="back-link" onclick="goBack()" style="margin-bottom:12px;">&larr; Voltar</button>` : '';
+  const coverBg = (STORE.covers && STORE.covers[topic.id]) 
+    ? `background-image:url('${STORE.covers[topic.id]}'); background-size:cover; background-position:center;` 
+    : `background:${COVERS[topic.cover || 0]};`;
+
   return `
     ${backBtn}
-    <div class="page-cover" style="background:${COVERS[topic.cover || 0]}">
-      <button class="cover-btn" onclick="cycleCover(event,'${topic.id}')">Mudar capa</button>
+    <div class="page-cover" style="${coverBg}">
+      <button class="cover-btn" onclick="triggerCoverUpload('${topic.id}', event)">📷 Mudar capa</button>
     </div>
     <div class="page-icon-bubble" onclick="openEmojiPicker(event,'${topic.id}')">${topic.emoji}</div>
     <h1 class="page-title-big">${topic.label}</h1>
@@ -909,8 +989,12 @@ function pageInicio() {
     <h1 style="font-size:28px; margin-top:2px;">Bom dia, Rhay &#9825;</h1>
     <p style="font-size:13px; color:var(--muted); margin-top:4px;">Pequenos passos todos os dias constroem grandes sonhos.</p>
 
-    <div style="border-radius:28px; background:linear-gradient(120deg, var(--lavender), var(--blush) 55%, var(--peach)); padding:32px; margin:20px 0; display:flex; align-items:center; justify-content:space-between; min-height:110px;">
-      <div><div style="font-size:11px; color:#fff;">foto da Home</div><div style="font-size:13px; color:#fff; opacity:.9;">clique pra trocar</div></div>
+    const homeBannerStyle = STORE.homeBannerImage 
+      ? `background-image:url('${STORE.homeBannerImage}'); background-size:cover; background-position:center;` 
+      : `background:linear-gradient(120deg, var(--lavender), var(--blush) 55%, var(--peach));`;
+
+    <div onclick="triggerHomeBannerUpload()" style="border-radius:28px; ${homeBannerStyle} padding:32px; margin:20px 0; display:flex; align-items:center; justify-content:space-between; min-height:110px; cursor:pointer;" title="Clique para trocar a foto da Home">
+      <div><div style="font-size:11px; color:#fff;">foto da Home</div><div style="font-size:13px; color:#fff; opacity:.9;">📷 clique pra trocar foto</div></div>
       <svg width="110" height="86" viewBox="0 0 150 120"><circle cx="60" cy="60" r="42" fill="#fff" fill-opacity="0.35"/><circle cx="105" cy="35" r="20" fill="#fff" fill-opacity="0.5"/></svg>
     </div>
 
