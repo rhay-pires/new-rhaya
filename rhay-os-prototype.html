@@ -984,14 +984,14 @@ function pageInicio() {
     list = list.filter(t => (t.area || t.tag || '').toLowerCase() === activeCategoryFilter.toLowerCase());
   }
 
+  const homeBannerStyle = STORE.homeBannerImage 
+    ? `background-image:url('${STORE.homeBannerImage}'); background-size:cover; background-position:center;` 
+    : `background:linear-gradient(120deg, var(--lavender), var(--blush) 55%, var(--peach));`;
+
   return `
     <div class="page-eyebrow">segunda-feira, 14 de setembro de 2026</div>
     <h1 style="font-size:28px; margin-top:2px;">Bom dia, Rhay &#9825;</h1>
     <p style="font-size:13px; color:var(--muted); margin-top:4px;">Pequenos passos todos os dias constroem grandes sonhos.</p>
-
-    const homeBannerStyle = STORE.homeBannerImage 
-      ? `background-image:url('${STORE.homeBannerImage}'); background-size:cover; background-position:center;` 
-      : `background:linear-gradient(120deg, var(--lavender), var(--blush) 55%, var(--peach));`;
 
     <div onclick="triggerHomeBannerUpload()" style="border-radius:28px; ${homeBannerStyle} padding:32px; margin:20px 0; display:flex; align-items:center; justify-content:space-between; min-height:110px; cursor:pointer;" title="Clique para trocar a foto da Home">
       <div><div style="font-size:11px; color:#fff;">foto da Home</div><div style="font-size:13px; color:#fff; opacity:.9;">📷 clique pra trocar foto</div></div>
