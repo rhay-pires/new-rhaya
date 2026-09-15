@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhay OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #F8F6F4; --surface: #FFFFFF; --ink: #252333; --muted: #777487; --border: #E9E5E5;
+    --lavender: #A88BEA; --purple: #8862D9; --blush: #EC7FA0; --peach: #F0A15E; --sage: #7EC28B;
+    --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px;
+    --shadow: 0 4px 24px rgba(37,35,51,0.06);
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:'Inter',-apple-system,sans-serif; background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; }
+  h1,h2,h3 { font-family:'Fraunces',Georgia,serif; margin:0; font-weight:600; }
+  .app { display:flex; height:100vh; overflow:hidden; }
+
+  /* ---------- Sidebar (desktop) ---------- */
+  .sidebar { width:250px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); padding:20px 14px; display:flex; flex-direction:column; justify-space-between; overflow-y:auto; }
+  .brand { display:flex; align-items:center; gap:10px; padding:4px 8px 18px 8px; }
+  .brand-mark { width:28px; height:28px; border-radius:9px; background:linear-gradient(135deg,var(--purple),var(--blush)); flex-shrink:0; }
+  .brand-name { font-size:16px; line-height:1.1; }
+  .brand-tag { font-size:10px; color:var(--muted); }
+
+  .nav-home { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:14px; background:linear-gradient(120deg,var(--lavender),var(--blush)); margin-bottom:10px; cursor:pointer; border:none; width:100%; text-align:left; }
+  .nav-home span.label { color:#fff; font-size:12.5px; font-weight:500; }
+  .emoji-chip { width:22px; height:22px; border-radius:7px; background:rgba(255,255,255,0.5); display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; flex-shrink:0; }
+
+  .group-row, .leaf-row { display:flex; align-items:center; gap:8px; padding:7px 10px; cursor:pointer; border-radius:10px; font-size:12.5px; font-weight:500; color:var(--ink); background:none; border:none; width:100%; text-align:left; }
+  .group-row:hover, .leaf-row:hover { background:rgba(0,0,0,0.03); }
+  .leaf-row.active { background:rgba(0,0,0,0.05); }
+  .caret { font-size:9px; color:#B3AFC2; width:10px; display:inline-block; flex-shrink:0; }
+  .dot { width:20px; height:20px; border-radius:7px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; }
+
+  .sub-list { margin-left:26px; display:flex; flex-direction:column; border-left:1px solid #EEECE8; padding-left:10px; overflow:hidden; max-height:0; transition:max-height .25s ease; }
+  .sub-list.open { max-height:600px; }
+  .sub-item { padding:6px 8px; border-radius:8px; color:var(--muted); font-size:12.5px; cursor:pointer; background:none; border:none; text-align:left; width:100%; display:flex; align-items:center; justify-content:space-between; }
+  .sub-item:hover { background:rgba(0,0,0,0.03); color:var(--ink); }
+  .sub-item.active { background:rgba(0,0,0,0.05); color:var(--ink); font-weight:600; }
+  .new-topic { padding:8px 10px; color:#B3AFC2; font-size:12.5px; margin-top:4px; cursor:pointer; }
+  .new-topic:hover { color:var(--purple); }
+  .profile-card { display:flex; align-items:center; gap:10px; padding:10px; border-radius:16px; background:var(--bg); margin-top:14px; }
+  .avatar { width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,var(--purple),var(--blush)); display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; flex-shrink:0; }
+
+  /* ---------- Topbar + content ---------- */
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 28px; border-bottom:1px solid var(--border); background:rgba(248,246,244,0.85); backdrop-filter:blur(6px); }
+  .search { display:flex; align-items:center; gap:8px; border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:6px 16px; font-size:12.5px; color:var(--muted); width:240px; }
+  .search input { border:none; background:transparent; font-family:inherit; font-size:12.5px; color:var(--ink); outline:none; width:100%; }
+  .add-btn { background:var(--ink); color:#fff; font-size:12.5px; padding:9px 18px; border-radius:999px; border:none; cursor:pointer; font-weight:500; transition:transform .1s ease; }
+  .add-btn:hover { transform:scale(1.02); }
+  .icon-btn { width:34px; height:34px; border-radius:50%; background:#fff; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--muted); cursor:pointer; }
+  .topbar-right { display:flex; align-items:center; gap:12px; }
+  .menu-btn { display:none; }
+
+  .content { flex:1; overflow-y:auto; padding:28px 40px 60px; }
+  .content-inner { max-width:900px; margin:0 auto; }
+
+  /* ---------- Reusable ---------- */
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow); padding:18px; position:relative; }
+  .badge { display:inline-flex; align-items:center; border-radius:999px; padding:4px 10px; font-size:11px; font-weight:500; }
+  .btn { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:8px 16px; font-size:12.5px; font-weight:500; cursor:pointer; border:none; }
+  .btn-primary { background:var(--ink); color:#fff; }
+  .btn-primary:hover { opacity:0.9; }
+  .empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; border:1px dashed var(--border); border-radius:var(--radius-md); padding:56px 20px; text-align:center; }
+  .empty-state p { max-width:280px; font-family:'Fraunces',Georgia,serif; font-size:16px; color:var(--ink); margin:0; }
+  .progress-track { height:6px; background:#F1EFE9; border-radius:99px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:99px; }
+  .page-header { margin-bottom:22px; display:flex; justify-content:space-between; align-items:flex-end; }
+  .back-link { display:inline-flex; align-items:center; gap:6px; border:0; background:none; color:var(--muted); padding:0; margin-bottom:9px; font:500 12px 'Inter', sans-serif; cursor:pointer; }
+  .back-link:hover { color:var(--purple); }
+  .page-eyebrow { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .page-title { font-size:24px; margin-top:2px; }
+  .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; box-shadow:var(--shadow); }
+  .stat-label { font-size:11px; color:var(--muted); }
+  .stat-value { font-size:22px; margin-top:2px; }
+  .stat-hint { font-size:11px; color:var(--muted); margin-top:2px; }
+  .list-row { display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--border); transition:background .15s ease; }
+  .list-row:last-child { border-bottom:none; }
+  .list-row:hover { background:rgba(0,0,0,0.015); }
+  .checkbox { width:18px; height:18px; border-radius:6px; border:1.5px solid var(--border); flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .checkbox.done { background:var(--sage); border-color:var(--sage); }
+  .checkbox.done::after { content:'✓'; color:#fff; font-size:11px; font-weight:bold; }
+  .gallery-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .gallery-card { border-radius:20px; overflow:hidden; background:#fff; border:1px solid var(--border); cursor:pointer; transition:transform .15s ease; position:relative; }
+  .gallery-card:hover { transform:translateY(-2px); }
+  .gallery-cover { height:110px; position:relative; }
+  .gallery-footer { display:flex; align-items:center; gap:8px; padding:12px 14px; font-size:13px; }
+
+  /* ---------- Botão de Excluir ---------- */
+  .delete-btn { background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:4px 8px; border-radius:6px; opacity:0.3; transition:opacity .15s, color .15s, background .15s; }
+  .delete-btn:hover { opacity:1; color:var(--blush); background:rgba(236,127,160,0.12); }
+
+  /* ---------- Modal de Adicionar Item ---------- */
+  .modal-overlay { position:fixed; inset:0; background:rgba(37,35,51,0.4); backdrop-filter:blur(4px); z-index:120; display:none; align-items:center; justify-content:center; padding:16px; }
+  .modal-overlay.open { display:flex; }
+  .modal-card { background:#fff; border-radius:24px; width:100%; max-width:440px; box-shadow:0 10px 40px rgba(0,0,0,0.15); border:1px solid var(--border); overflow:hidden; animation:modalPop .2s ease-out; }
+  @keyframes modalPop { from { transform:scale(0.95); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .modal-header { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .modal-header h3 { font-size:16px; font-weight:600; color:var(--ink); }
+  .modal-close { background:none; border:none; font-size:22px; color:var(--muted); cursor:pointer; padding:0; line-height:1; }
+  .modal-body { padding:24px; display:flex; flex-direction:column; gap:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-label { font-size:11.5px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; }
+  .form-input, .form-select, .form-textarea { font-family:'Inter',sans-serif; font-size:13px; padding:10px 14px; border-radius:12px; border:1px solid var(--border); outline:none; background:var(--bg); color:var(--ink); }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color:var(--purple); background:#fff; }
+  .modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; background:var(--bg); }
+
+  /* ---------- Cover + emoji-page header ---------- */
+  .page-cover { height:130px; border-radius:20px; position:relative; }
+  .cover-btn { position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.8); border:none; border-radius:999px; padding:6px 12px; font-size:11px; cursor:pointer; }
+  .page-icon-bubble { width:52px; height:52px; border-radius:16px; background:#fff; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:26px; margin-top:-26px; margin-left:20px; box-shadow:var(--shadow); cursor:pointer; position:relative; z-index:2; }
+  .page-title-big { font-size:26px; margin:10px 0 20px; }
+
+  .tile-card { background:#fff; border:1px solid var(--border); border-radius:16px; padding:16px; cursor:pointer; display:flex; flex-direction:column; gap:10px; transition:transform .15s ease; }
+  .tile-card:hover { transform:translateY(-2px); }
+  .tile-dot { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+
+  /* ---------- Agenda dashboard ---------- */
+  .agenda-grid { display:grid; grid-template-columns:1.2fr .8fr; gap:16px; }
+  .agenda-calendar { grid-row:span 2; }
+  .calendar-week { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin:18px 0 14px; }
+  .calendar-day { min-height:74px; padding:8px 4px; border-radius:12px; text-align:center; background:var(--bg); font-size:11px; color:var(--muted); }
+  .calendar-day strong { display:flex; width:27px; height:27px; margin:5px auto 0; align-items:center; justify-content:center; border-radius:50%; color:var(--ink); font-size:12px; }
+  .calendar-day.today { background:var(--lavender); color:#fff; }
+  .calendar-day.today strong { background:#fff; color:var(--purple); }
+  .calendar-event { width:5px; height:5px; border-radius:50%; margin:5px auto 0; background:var(--peach); }
+  .agenda-card-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:4px; }
+  .text-link { color:var(--purple); font-size:11px; cursor:pointer; background:none; border:0; padding:0; font-family:inherit; }
+  .agenda-shortcuts { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
+  .agenda-shortcut { text-align:left; background:#fff; border:1px solid var(--border); border-radius:14px; padding:14px; cursor:pointer; font-family:inherit; color:var(--ink); }
+  .agenda-shortcut:hover { border-color:var(--lavender); }
+  .agenda-shortcut span { display:block; font-size:18px; margin-bottom:8px; }
+  .topic-dashboard-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  .topic-dashboard-grid .wide { grid-column:span 2; }
+  .dashboard-note { margin:0 0 16px; color:var(--muted); font-size:12.5px; }
+  .topic-tabs { display:flex; align-items:center; gap:8px; overflow-x:auto; padding:2px 0 14px; margin-bottom:2px; }
+  .topic-tab { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; border:1px solid var(--border); border-radius:999px; padding:8px 12px; background:#fff; color:var(--ink); font:500 12px 'Inter', sans-serif; cursor:pointer; }
+  .topic-tab:hover { border-color:var(--lavender); color:var(--purple); }
+
+  /* ---------- Emoji picker ---------- */
+  .emoji-panel { position:absolute; z-index:100; background:#fff; border:1px solid var(--border); border-radius:14px; padding:8px; display:grid; grid-template-columns:repeat(6,1fr); gap:2px; box-shadow:var(--shadow); width:210px; }
+  .emoji-opt { font-size:16px; background:none; border:none; cursor:pointer; border-radius:8px; padding:5px; }
+  .emoji-opt:hover { background:rgba(0,0,0,0.05); }
+
+  /* ---------- Mobile bottom nav + sheet ---------- */
+  .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border); padding:8px 6px 18px; justify-content:space-around; align-items:center; z-index:40; }
+  .bn-item { display:flex; flex-direction:column; align-items:center; gap:2px; color:#B3AFC2; font-size:9px; background:none; border:none; cursor:pointer; }
+  .bn-fab { width:46px; height:46px; border-radius:50%; background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-size:20px; margin-top:-24px; box-shadow:0 4px 10px rgba(0,0,0,.15); border:none; cursor:pointer; }
+  .sheet-overlay { position:fixed; inset:0; background:rgba(37,35,51,0.35); z-index:60; display:none; align-items:flex-end; }
+  .sheet-overlay.open { display:flex; }
+  .sheet-panel { background:#fff; width:100%; max-height:78vh; overflow-y:auto; border-radius:24px 24px 0 0; padding:20px; }
+  .sheet-handle { width:36px; height:4px; background:#E3E0DC; border-radius:999px; margin:0 auto 14px; }
+  .sheet-row { display:flex; align-items:center; gap:10px; padding:10px 6px; font-size:13px; border-radius:10px; }
+  .sheet-group-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin:12px 6px 4px; }
+
+  @media (max-width: 768px) {
+    .sidebar { display:none; }
+    .bottom-nav { display:flex; }
+    .content { padding:16px 16px 100px; }
+    .content-inner { max-width:100%; }
+    .stat-grid { grid-template-columns:repeat(2,1fr); }
+    .gallery-grid { grid-template-columns:repeat(2,1fr); }
+    .agenda-grid { grid-template-columns:1fr; }
+    .agenda-calendar { grid-row:auto; }
+    .topic-dashboard-grid { grid-template-columns:1fr; }
+    .topic-dashboard-grid .wide { grid-column:auto; }
+    .search { display:none; }
+    .topbar { padding:14px 16px; }
+    .menu-btn { display:flex; }
+  }
+
+  ::-webkit-scrollbar { width:8px; }
+  ::-webkit-scrollbar-thumb { background:#E3E0DC; border-radius:8px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="icon-btn menu-btn" onclick="toggleSheet()">&#9776;</div>
+        <button class="icon-btn" id="backBtn" onclick="goBack()" title="Voltar" style="font-size:16px;">&#8592;</button>
+        <div class="search">&#8981;&nbsp; <input type="text" id="searchInput" placeholder="Buscar em tudo..." oninput="handleSearch(this.value)" /></div>
+      </div>
+      <div class="topbar-right">
+        <div class="icon-btn">&#128276;</div>
+        <button class="add-btn" onclick="openAddModal('tarefas')">+ Adicionar</button>
+      </div>
+    </div>
+    <div class="content"><div class="content-inner" id="content"></div></div>
+  </div>
+</div>
+
+<div class="bottom-nav" id="bottomNav">
+  <button class="bn-item" onclick="goTo('inicio')">&#127968;<span>Início</span></button>
+  <button class="bn-item" onclick="goTo('agenda-home')">&#128197;<span>Agenda</span></button>
+  <button class="bn-fab" onclick="openAddModal('tarefas')">+</button>
+  <button class="bn-item" onclick="goTo('financas-visao')">&#128176;<span>Finanças</span></button>
+  <button class="bn-item" onclick="toggleSheet()">&#9776;<span>Mais</span></button>
+</div>
+
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheetIfBackdrop(event)">
+  <div class="sheet-panel" id="sheetPanel" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+  </div>
+</div>
+
+<!-- Modal de Adicionar Item -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target.id==='modalOverlay') closeAddModal()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="modalTitle">Adicionar Item</h3>
+      <button class="modal-close" onclick="closeAddModal()">&times;</button>
+    </div>
+    <form id="modalForm" onsubmit="submitAddForm(event)">
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn" style="background:#E3E0DC; color:var(--ink);" onclick="closeAddModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const C = { lavender:'#A88BEA', purple:'#8862D9', blush:'#EC7FA0', peach:'#F0A15E', sage:'#7EC28B' };
+const COVERS = [
+  'linear-gradient(120deg, var(--lavender), var(--blush))',
+  'linear-gradient(120deg, var(--peach), var(--blush))',
+  'linear-gradient(120deg, var(--sage), var(--lavender))',
+  'linear-gradient(120deg, var(--purple), var(--lavender))',
+  'linear-gradient(120deg, var(--blush), var(--peach))',
+  'linear-gradient(120deg, var(--sage), var(--peach))',
+];
+const EMOJI_CHOICES = ['&#127968;','&#128197;','&#9989;','&#127793;','&#128218;','&#128221;','&#127919;','&#128368;','&#10084;','&#10024;','&#128193;','&#128179;','&#127916;','&#127760;','&#9992;','&#128176;','&#128187;','&#127891;','&#127800;','&#127807;','&#11088;','&#128293;','&#128161;','&#127912;'];
+
+const INICIO = { emoji: '&#127968;' };
+
+const TOPICS = [
+  { id:'agenda', label:'Agenda', emoji:'&#128197;', color:C.lavender, cover:2, children:[
+    { id:'agenda-home', label:'Calendário' },
+    { id:'agenda-tarefas', label:'Tarefas' },
+    { id:'agenda-habitos', label:'Hábitos' },
+  ], hideChildren:true },
+  { id:'biblioteca', label:'Biblioteca', emoji:'&#128218;', color:C.lavender, cover:4, hidden:true, children:[
+    { id:'biblioteca-livros', label:'Livros' },
+    { id:'biblioteca-filmes', label:'Filmes & Séries' },
+  ], hideChildren:true },
+  { id:'diario', label:'Diário', emoji:'&#128221;', color:C.blush, cover:1, locked:true, hidden:true, children:[
+    { id:'retrospectiva', label:'Retrospectiva' },
+  ], hideChildren:true },
+  { id:'saude', label:'Saúde', emoji:'&#10084;', color:C.blush, cover:1, hidden:true },
+  { id:'metas', label:'Metas', emoji:'&#127919;', color:C.purple, cover:3, hidden:true },
+  { id:'trabalho', label:'Trabalho', emoji:'&#128187;', color:C.purple, cover:3, children:[
+    { id:'trabalho-tarefas', label:'Tarefas' },
+    { id:'trabalho-projetos', label:'Projetos' },
+    { id:'trabalho-notas', label:'Notas' },
+  ], hideChildren:true },
+  { id:'faculdade', label:'Faculdade', emoji:'&#127891;', color:C.lavender, cover:2, children:[
+    { id:'faculdade-disciplinas', label:'Disciplinas' },
+    { id:'faculdade-provas', label:'Provas & Trabalhos' },
+    { id:'faculdade-tcc', label:'TCC' },
+  ], hideChildren:true },
+  { id:'conteudo', label:'Criação de Conteúdo', emoji:'&#127916;', color:C.peach, cover:1, children:[
+    { id:'conteudo-ideias', label:'Ideias' },
+    { id:'conteudo-planejados', label:'Planejados' },
+    { id:'conteudo-publicados', label:'Publicados' },
+  ], hideChildren:true },
+  { id:'projetos', label:'Projetos Pessoais', emoji:'&#127760;', color:C.purple, cover:3, children:[
+    { id:'diario', label:'Diário' },
+    { id:'biblioteca', label:'Biblioteca' },
+    { id:'saude', label:'Saúde' },
+    { id:'metas', label:'Metas' },
+    { id:'viagens', label:'Viagens' },
+  ], hideChildren:true },
+  { id:'viagens', label:'Viagens', emoji:'&#9992;', color:C.lavender, cover:2, hidden:true, children:[
+    { id:'viagens-planejadas', label:'Planejadas' },
+    { id:'viagens-roteiros', label:'Roteiros' },
+    { id:'viagens-orcamento', label:'Orçamento de viagem' },
+  ], hideChildren:true },
+  { id:'financas', label:'Finanças', emoji:'&#128176;', color:C.sage, cover:0, children:[
+    { id:'financas-visao', label:'Visão geral' },
+    { id:'financas-transacoes', label:'Transações' },
+    { id:'financas-contas', label:'Contas & Cartões' },
+    { id:'financas-orcamento', label:'Orçamento' },
+    { id:'financas-metas', label:'Metas financeiras' },
+  ], hideChildren:true },
+];
+
+let openGroups = { agenda: true };
+let currentPage = 'inicio';
+let searchQuery = '';
+let activeCategoryFilter = 'Todas';
+
+/* ---------------- Store & LocalStorage ---------------- */
+const DEFAULT_STORE = {
+  tarefas: [
+    { id: 't1', titulo: 'Revisar módulo de NR-17', area: 'trabalho', tag: 'trabalho', tagColor: C.purple, done: false },
+    { id: 't2', titulo: 'Entregar atividade de Sistemas de Informação', area: 'faculdade', tag: 'faculdade', tagColor: C.lavender, done: false },
+    { id: 't3', titulo: 'Gravar vídeo para o rhay.dev', area: 'conteudo', tag: 'conteúdo', tagColor: C.peach, done: false },
+    { id: 't4', titulo: 'Organizar recibos do mês', area: 'financas', tag: 'finanças', tagColor: C.sage, done: true },
+    { id: 't5', titulo: 'Roteirizar módulo gamificado de NR-11', area: 'trabalho', tag: 'produção', tagColor: C.purple, done: false },
+    { id: 't6', titulo: 'Renderizar vídeos da NR-16', area: 'trabalho', tag: 'vídeo', tagColor: C.purple, done: false },
+    { id: 't7', titulo: 'Lista de cálculo', area: 'faculdade', tag: 'prova', tagColor: C.lavender, done: false },
+    { id: 't8', titulo: 'Trabalho de Banco de Dados', area: 'faculdade', tag: 'trabalho', tagColor: C.lavender, done: false }
+  ],
+  livros: [
+    { id: 'l1', titulo: 'Água Viva', autor: 'Clarice Lispector', icon: '📖', gradient: 'linear-gradient(135deg, var(--lavender), var(--blush))' }
+  ],
+  filmes: [
+    { id: 'f1', titulo: 'The Bear', autor: 'Série', icon: '🎬', gradient: 'linear-gradient(135deg, var(--peach), var(--blush))' }
+  ],
+  habitos: [
+    { id: 'h1', titulo: 'Beber água — streak de 6 dias', pct: 86, color: C.sage },
+    { id: 'h2', titulo: 'Ler 20 minutos — streak de 4 dias', pct: 57, color: C.lavender },
+    { id: 'h3', titulo: 'Alongar ao acordar — streak de 3 dias', pct: 43, color: C.blush }
+  ],
+  metas: [
+    { id: 'm1', titulo: 'TCC — Sistemas de Informação', pct: 40, color: C.lavender },
+    { id: 'm2', titulo: 'Reserva de emergência', pct: 65, color: C.peach },
+    { id: 'm3', titulo: 'Ler 12 livros em 2026', pct: 25, color: C.sage }
+  ],
+  projetos: [
+    { id: 'p1', titulo: 'Rhay OS', icon: '🌐', gradient: 'linear-gradient(135deg, var(--purple), var(--lavender))' },
+    { id: 'p2', titulo: 'Portfólio', icon: '🌐', gradient: 'linear-gradient(135deg, var(--lavender), var(--blush))' },
+    { id: 'p3', titulo: 'LifeHub', icon: '🧠', gradient: 'linear-gradient(135deg, var(--peach), var(--sage))' },
+    { id: 'p4', titulo: 'Meu Dinheiro', icon: '💰', gradient: 'linear-gradient(135deg, var(--sage), var(--lavender))' },
+    { id: 'p5', titulo: 'Zenith', icon: '✨', gradient: 'linear-gradient(135deg, var(--blush), var(--purple))' }
+  ],
+  financas: [
+    { id: 'fn1', titulo: 'Mensalidade FIAP', tag: 'despesa', tagColor: C.lavender, done: true },
+    { id: 'fn2', titulo: 'Salário TecnoCursos', tag: 'receita', tagColor: C.sage, done: true },
+    { id: 'fn3', titulo: 'Supermercado', tag: 'despesa', tagColor: C.peach, done: true }
+  ],
+  notas: [
+    { id: 'n1', titulo: 'Briefing da semana', texto: 'Anotações de trabalho...', area: 'trabalho' }
+  ]
+};
+
+let STORE = loadStore();
+
+function loadStore() {
+  try {
+    const saved = localStorage.getItem('rhay_os_store');
+    return saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_STORE));
+  } catch(e) {
+    return JSON.parse(JSON.stringify(DEFAULT_STORE));
+  }
+}
+
+function saveStore() {
+  localStorage.setItem('rhay_os_store', JSON.stringify(STORE));
+  renderContent();
+}
+
+function toggleTask(id) {
+  const item = STORE.tarefas.find(t => t.id === id) || STORE.financas.find(f => f.id === id);
+  if (item) {
+    item.done = !item.done;
+    saveStore();
+  }
+}
+
+function deleteItem(collection, id, event) {
+  if (event) event.stopPropagation();
+  if (STORE[collection]) {
+    STORE[collection] = STORE[collection].filter(i => i.id !== id);
+    saveStore();
+  }
+}
+
+/* ---------------- Sidebar ---------------- */
+function renderSidebar() {
+  const el = document.getElementById('sidebar');
+  let html = `
+    <div>
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div><div class="brand-name">Rhay OS</div><div class="brand-tag">uma vida intencional &#9825;</div></div>
+      </div>
+      <button class="nav-home" onclick="goTo('inicio')">
+        <span class="emoji-chip" onclick="openEmojiPicker(event,'inicio')">${INICIO.emoji}</span>
+        <span class="label">Início</span>
+      </button>
+      <div>
+  `;
+  TOPICS.forEach(topic => {
+    if (topic.hidden) return;
+    if (topic.children && !topic.hideChildren) {
+      const isOpen = !!openGroups[topic.id];
+      html += `
+        <button class="group-row" onclick="handleGroupClick('${topic.id}')">
+          <span class="caret">${isOpen ? '&#9660;' : '&#9654;'}</span>
+          <span class="dot" style="background:${topic.color}2a" onclick="openEmojiPicker(event,'${topic.id}')">${topic.emoji}</span>
+          <span>${topic.label}</span>
+        </button>
+        <div class="sub-list ${isOpen ? 'open' : ''}">
+          ${topic.children.map(c => `
+            <button class="sub-item ${currentPage === c.id ? 'active' : ''}" onclick="goTo('${c.id}')">
+              <span>${c.label}</span>
+            </button>
+          `).join('')}
+        </div>
+      `;
+    } else {
+      html += `
+        <button class="leaf-row ${isTopicActive(topic, currentPage) ? 'active' : ''}" onclick="goTo('${topic.id}')">
+          <span class="dot" style="background:${topic.color}2a" onclick="openEmojiPicker(event,'${topic.id}')">${topic.emoji}</span>
+          <span>${topic.label}</span>
+          ${topic.locked ? '<span style="margin-left:auto; font-size:10px;">&#128274;</span>' : ''}
+        </button>
+      `;
+    }
+  });
+  html += `<div class="new-topic" onclick="openAddModal('tarefas')">+ Novo tópico</div></div></div>`;
+  html += `<div class="profile-card"><div class="avatar">R</div><div><div style="font-size:12px;">Rhay</div><div style="font-size:10px; color:var(--muted);">Perfil</div></div></div>`;
+  el.innerHTML = html;
+}
+
+function handleGroupClick(id) {
+  openGroups[id] = !openGroups[id];
+  goTo(id, true);
+}
+
+let pageHistory = ['inicio'];
+
+function goTo(id, isBackNav) {
+  if (!isBackNav) {
+    if (pageHistory[pageHistory.length - 1] !== id) {
+      pageHistory.push(id);
+    }
+  }
+  currentPage = id;
+  renderSidebar();
+  renderContent();
+  closeSheet();
+  const c = document.querySelector('.content');
+  if (c) c.scrollTop = 0;
+  updateBackBtnState();
+}
+
+function goBack() {
+  if (pageHistory.length > 1) {
+    pageHistory.pop();
+    const prev = pageHistory[pageHistory.length - 1];
+    goTo(prev, true);
+  } else {
+    goTo('inicio', true);
+  }
+}
+
+function updateBackBtnState() {
+  const btn = document.getElementById('backBtn');
+  if (btn) {
+    if (pageHistory.length > 1 && currentPage !== 'inicio') {
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    } else {
+      btn.style.opacity = '0.4';
+      btn.style.cursor = 'default';
+    }
+  }
+}
+
+function handleSearch(q) {
+  searchQuery = q.toLowerCase().trim();
+  renderContent();
+}
+
+/* ---------------- Emoji picker ---------------- */
+function findTopic(id) { return TOPICS.find(t => t.id === id); }
+function isTopicActive(topic, pageId) {
+  if (topic.id === pageId) return true;
+  return (topic.children || []).some(child => {
+    if (child.id === pageId) return true;
+    const childTopic = findTopic(child.id);
+    return childTopic ? isTopicActive(childTopic, pageId) : false;
+  });
+}
+
+function openEmojiPicker(event, id) {
+  event.stopPropagation();
+  closeEmojiPicker();
+  const panel = document.createElement('div');
+  panel.className = 'emoji-panel';
+  panel.id = 'emojiPanel';
+  panel.innerHTML = EMOJI_CHOICES.map(e => `<button class="emoji-opt" onclick="pickEmoji(event,'${id}','${e}')">${e}</button>`).join('');
+  document.body.appendChild(panel);
+  const rect = event.currentTarget.getBoundingClientRect();
+  panel.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+  panel.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 220) + 'px';
+  setTimeout(() => document.addEventListener('click', closeEmojiPickerOnce), 0);
+}
+function closeEmojiPicker() { const p = document.getElementById('emojiPanel'); if (p) p.remove(); }
+function closeEmojiPickerOnce() { closeEmojiPicker(); document.removeEventListener('click', closeEmojiPickerOnce); }
+function pickEmoji(event, id, emoji) {
+  event.stopPropagation();
+  if (id === 'inicio') INICIO.emoji = emoji;
+  else { const t = findTopic(id); if (t) t.emoji = emoji; }
+  closeEmojiPicker();
+  renderSidebar();
+  renderContent();
+}
+
+function cycleCover(event, id) {
+  event.stopPropagation();
+  const t = findTopic(id);
+  if (!t) return;
+  t.cover = ((t.cover || 0) + 1) % COVERS.length;
+  renderContent();
+}
+
+/* ---------------- Mobile sheet ---------------- */
+function renderSheet() {
+  let html = `<div class="sheet-handle"></div>`;
+  html += `<div class="sheet-row" onclick="goTo('inicio')"><span>${INICIO.emoji}</span><span>Início</span></div>`;
+  TOPICS.forEach(topic => {
+    if (topic.hidden) return;
+    if (topic.children && !topic.hideChildren) {
+      html += `<div class="sheet-group-label">${topic.label}</div>`;
+      topic.children.forEach(c => {
+        html += `<div class="sheet-row" onclick="goTo('${c.id}')"><span>${topic.emoji}</span><span>${c.label}</span></div>`;
+      });
+    } else {
+      html += `<div class="sheet-row" onclick="goTo('${topic.id}')"><span>${topic.emoji}</span><span>${topic.label}</span></div>`;
+    }
+  });
+  document.getElementById('sheetPanel').innerHTML = html;
+}
+function toggleSheet() {
+  renderSheet();
+  document.getElementById('sheetOverlay').classList.toggle('open');
+}
+function closeSheet() { document.getElementById('sheetOverlay').classList.remove('open'); }
+function closeSheetIfBackdrop(e) { if (e.target.id === 'sheetOverlay') closeSheet(); }
+
+/* ---------------- Content helpers ---------------- */
+function pageHeader(eyebrow, title, addType) {
+  const backBtn = currentPage !== 'inicio' ? `<button class="back-link" onclick="goBack()">&larr; Voltar</button>` : '';
+  const btn = addType ? `<button class="btn btn-primary" onclick="openAddModal('${addType}')">+ Adicionar</button>` : '';
+  return `${backBtn}<div class="page-header"><div><div class="page-eyebrow">${eyebrow}</div><h1 class="page-title">${title}</h1></div>${btn}</div>`;
+}
+function coverHeader(topic) {
+  const backBtn = currentPage !== 'inicio' ? `<button class="back-link" onclick="goBack()" style="margin-bottom:12px;">&larr; Voltar</button>` : '';
+  return `
+    ${backBtn}
+    <div class="page-cover" style="background:${COVERS[topic.cover || 0]}">
+      <button class="cover-btn" onclick="cycleCover(event,'${topic.id}')">Mudar capa</button>
+    </div>
+    <div class="page-icon-bubble" onclick="openEmojiPicker(event,'${topic.id}')">${topic.emoji}</div>
+    <h1 class="page-title-big">${topic.label}</h1>
+  `;
+}
+function emptyState(message, addType) {
+  return `<div class="empty-state"><p>${message}</p><button class="btn btn-primary" onclick="openAddModal('${addType || 'tarefas'}')">+ adicionar</button></div>`;
+}
+function badge(text, color) { return `<span class="badge" style="background:${color || C.lavender}33; color:var(--ink);">${text}</span>`; }
+
+function taskRow(item, collection = 'tarefas') {
+  return `<div class="list-row">
+    <div class="checkbox ${item.done ? 'done' : ''}" onclick="toggleTask('${item.id}')"></div>
+    <div style="flex:1; ${item.done ? 'color:var(--muted); text-decoration:line-through;' : ''}">${item.titulo}</div>
+    ${badge(item.tag || item.area || 'geral', item.tagColor || C.purple)}
+    <button class="delete-btn" onclick="deleteItem('${collection}', '${item.id}', event)" title="Excluir">&times;</button>
+  </div>`;
+}
+
+function progressCard(item, collection = 'metas') {
+  return `<div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+    <div style="width:34px; height:34px; border-radius:10px; background:${item.color || C.purple}; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size:12px;">${item.pct}%</div>
+    <div style="flex:1;"><div style="font-size:12.5px; margin-bottom:5px;">${item.titulo}</div>
+    <div class="progress-track"><div class="progress-fill" style="width:${item.pct}%; background:${item.color || C.purple};"></div></div></div>
+    <button class="delete-btn" onclick="deleteItem('${collection}', '${item.id}', event)" title="Excluir">&times;</button>
+  </div>`;
+}
+
+function galleryCard(item, collection = 'livros') {
+  return `<div class="gallery-card" style="position:relative;">
+    <button class="delete-btn" style="position:absolute; top:8px; right:8px; z-index:10; background:rgba(255,255,255,0.85); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center;" onclick="deleteItem('${collection}', '${item.id}', event)" title="Excluir">&times;</button>
+    <div class="gallery-cover" style="background:${item.gradient || 'linear-gradient(135deg, var(--purple), var(--lavender))'};">${BLOB()}</div>
+    <div class="gallery-footer"><span>${item.icon || '📖'}</span><span>${item.titulo}</span></div></div>`;
+}
+
+const BLOB = () => `<svg width="100%" height="100%" viewBox="0 0 260 110" preserveAspectRatio="xMidYMid slice">
+  <circle cx="210" cy="20" r="30" fill="#fff" fill-opacity="0.25"/><circle cx="40" cy="90" r="36" fill="#fff" fill-opacity="0.2"/>
+  <circle cx="150" cy="55" r="16" fill="#fff" fill-opacity="0.4"/></svg>`;
+
+/* ---------------- Modal & Add Form ---------------- */
+let currentModalCollection = 'tarefas';
+
+function openAddModal(collection = 'tarefas') {
+  currentModalCollection = collection;
+  const overlay = document.getElementById('modalOverlay');
+  const title = document.getElementById('modalTitle');
+  const body = document.getElementById('modalBody');
+
+  const titles = {
+    tarefas: 'Nova Tarefa',
+    livros: 'Novo Livro',
+    filmes: 'Novo Filme / Série',
+    habitos: 'Novo Hábito',
+    metas: 'Nova Meta',
+    projetos: 'Novo Projeto',
+    financas: 'Nova Transação',
+    notas: 'Nova Nota'
+  };
+
+  title.innerText = titles[collection] || 'Adicionar Item';
+
+  let fields = '';
+  if (collection === 'tarefas') {
+    fields = `
+      <div class="form-group">
+        <label class="form-label">Título da Tarefa</label>
+        <input class="form-input" id="inputTitle" placeholder="Ex: Estudar Banco de Dados..." required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Área / Categoria</label>
+        <select class="form-select" id="inputCategory">
+          <option value="trabalho">Trabalho</option>
+          <option value="faculdade">Faculdade</option>
+          <option value="conteudo">Conteúdo</option>
+          <option value="financas">Finanças</option>
+          <option value="pessoal">Pessoal</option>
+        </select>
+      </div>
+    `;
+  } else if (collection === 'livros' || collection === 'filmes' || collection === 'projetos') {
+    fields = `
+      <div class="form-group">
+        <label class="form-label">Nome / Título</label>
+        <input class="form-input" id="inputTitle" placeholder="Ex: Dom Casmurro..." required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ícone / Emoji</label>
+        <input class="form-input" id="inputIcon" value="${collection === 'livros' ? '📖' : (collection === 'filmes' ? '🎬' : '🌐')}" />
+      </div>
+    `;
+  } else if (collection === 'metas' || collection === 'habitos') {
+    fields = `
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input class="form-input" id="inputTitle" placeholder="Ex: Reserva de emergência..." required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Progresso Inicial (%)</label>
+        <input type="number" min="0" max="100" class="form-input" id="inputPct" value="10" />
+      </div>
+    `;
+  } else if (collection === 'financas') {
+    fields = `
+      <div class="form-group">
+        <label class="form-label">Descrição da Transação</label>
+        <input class="form-input" id="inputTitle" placeholder="Ex: Mercado..." required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" id="inputType">
+          <option value="despesa">Despesa</option>
+          <option value="receita">Receita</option>
+        </select>
+      </div>
+    `;
+  } else {
+    fields = `
+      <div class="form-group">
+        <label class="form-label">Título</label>
+        <input class="form-input" id="inputTitle" placeholder="Digite o título..." required />
+      </div>
+    `;
+  }
+
+  body.innerHTML = fields;
+  overlay.classList.add('open');
+  setTimeout(() => {
+    const inp = document.getElementById('inputTitle');
+    if (inp) inp.focus();
+  }, 50);
+}
+
+function closeAddModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function submitAddForm(e) {
+  e.preventDefault();
+  const title = document.getElementById('inputTitle')?.value;
+  if (!title) return;
+
+  const colorMap = { trabalho: C.purple, faculdade: C.lavender, conteudo: C.peach, financas: C.sage, pessoal: C.blush };
+
+  if (currentModalCollection === 'tarefas') {
+    const cat = document.getElementById('inputCategory')?.value || 'pessoal';
+    const newItem = {
+      id: 't_' + Date.now(),
+      titulo: title,
+      area: cat,
+      tag: cat,
+      tagColor: colorMap[cat] || C.lavender,
+      done: false
+    };
+    STORE.tarefas.unshift(newItem);
+
+    // Opcional: tentar enviar pro servidor Node/SQLite se estiver rodando
+    fetch('http://localhost:3000/api/tarefas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario_id: 1, titulo: title, concluida: 0 })
+    }).catch(() => {});
+
+  } else if (currentModalCollection === 'livros' || currentModalCollection === 'filmes' || currentModalCollection === 'projetos') {
+    const icon = document.getElementById('inputIcon')?.value || '📖';
+    const grads = [
+      'linear-gradient(135deg, var(--lavender), var(--blush))',
+      'linear-gradient(135deg, var(--purple), var(--lavender))',
+      'linear-gradient(135deg, var(--peach), var(--blush))',
+      'linear-gradient(135deg, var(--sage), var(--lavender))'
+    ];
+    const newItem = {
+      id: currentModalCollection[0] + '_' + Date.now(),
+      titulo: title,
+      icon: icon,
+      gradient: grads[Math.floor(Math.random() * grads.length)]
+    };
+    STORE[currentModalCollection].unshift(newItem);
+
+  } else if (currentModalCollection === 'metas' || currentModalCollection === 'habitos') {
+    const pct = Number(document.getElementById('inputPct')?.value || 10);
+    const colors = [C.lavender, C.peach, C.sage, C.blush, C.purple];
+    const newItem = {
+      id: currentModalCollection[0] + '_' + Date.now(),
+      titulo: title,
+      pct: pct,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    };
+    STORE[currentModalCollection].unshift(newItem);
+
+  } else if (currentModalCollection === 'financas') {
+    const tipo = document.getElementById('inputType')?.value || 'despesa';
+    const newItem = {
+      id: 'fn_' + Date.now(),
+      titulo: title,
+      tag: tipo,
+      tagColor: tipo === 'receita' ? C.sage : C.blush,
+      done: true
+    };
+    STORE.financas.unshift(newItem);
+  }
+
+  saveStore();
+  closeAddModal();
+}
+
+/* ---------------- Dashboards ---------------- */
+function renderGroupLanding(topic) {
+  if (topic.id === 'agenda') return renderAgendaDashboard(topic);
+  return renderTopicDashboard(topic);
+}
+
+function dashboardIcon(topic, index) {
+  const icons = {
+    projetos:['&#128221;','&#128218;','&#10084;','&#127919;','&#9992;'], diario:['&#128368;'], biblioteca:['&#128214;','&#127916;'], trabalho:['&#9989;','&#128187;','&#128221;'],
+    faculdade:['&#127891;','&#128203;','&#127919;'], conteudo:['&#128161;','&#128197;','&#10024;'],
+    viagens:['&#9992;','&#128506;','&#128176;'], financas:['&#128202;','&#128179;','&#127919;','&#128200;','&#10024;']
+  };
+  return (icons[topic.id] || [topic.emoji])[index] || topic.emoji;
+}
+
+function dashboardShortcut(topic, child, index) {
+  return `<button class="agenda-shortcut" onclick="goTo('${child.id}')">
+    <span>${dashboardIcon(topic, index)}</span>
+    <strong style="font-size:12.5px;">${child.label}</strong>
+    <small style="display:block; color:var(--muted); margin-top:3px; font-size:10.5px;">abrir página</small>
+  </button>`;
+}
+
+function dashboardTab(topic, child, index) {
+  return `<button class="topic-tab" onclick="goTo('${child.id}')"><span>${dashboardIcon(topic, index)}</span>${child.label}</button>`;
+}
+
+function renderTopicDashboard(topic) {
+  let overview = '';
+  let intro = '';
+
+  if (topic.id === 'projetos') {
+    intro = 'Seus espaços pessoais reunidos em um só lugar.';
+    overview = `
+      <section class="card"><div class="agenda-card-head"><h3 style="font-size:16px;">Seu momento</h3><button class="text-link" onclick="goTo('diario')">abrir diário</button></div><p style="font-size:12.5px; color:var(--muted); margin:8px 0 14px;">Registre o agora e guarde as memórias que importam.</p><div style="font-size:11.5px;">&#128368; 18 memórias neste mês</div></section>
+      <section class="card"><div class="agenda-card-head"><h3 style="font-size:16px;">Objetivos pessoais</h3><button class="text-link" onclick="goTo('metas')">ver metas</button></div>${STORE.metas.slice(0, 2).map(m => progressCard(m, 'metas')).join('')}</section>
+      <section class="card wide"><div class="agenda-card-head"><h3 style="font-size:16px;">Visão geral</h3><button class="text-link" onclick="goTo('saude')">ver saúde</button></div><div class="stat-grid" style="grid-template-columns:repeat(3,1fr);"><div class="stat-card"><div class="stat-label">Hábitos concluídos</div><div class="stat-value">86%</div></div><div class="stat-card"><div class="stat-label">Livros em leitura</div><div class="stat-value">${STORE.livros.length}</div></div><div class="stat-card"><div class="stat-label">Viagens planejadas</div><div class="stat-value">0</div></div></div></section>`;
+  } else if (topic.id === 'diario') {
+    intro = 'Um espaço privado para registrar e revisitar sua história.';
+    overview = `
+      <section class="card wide"><div class="agenda-card-head"><h3 style="font-size:16px;">Seu diário</h3><span style="font-size:12px;">&#128274;</span></div>
+        <p style="font-size:12.5px; color:var(--muted); margin:8px 0 14px;">Este espaço continua protegido e só seu.</p>
+        <button class="btn btn-primary">Desbloquear</button>
+      </section>
+      <section class="card wide" style="background:linear-gradient(135deg, var(--lavender), var(--blush)); color:#fff;"><h3 style="color:#fff; font-size:16px;">Setembro 2026 &#9825;</h3><p style="font-size:12px; opacity:.9; margin:7px 0 0;">18 memórias, 2 livros e 86% dos hábitos concluídos.</p></section>`;
+  } else if (topic.id === 'biblioteca') {
+    intro = 'Acompanhe o que está lendo e assistindo.';
+    overview = `
+      <section class="card">
+        <div class="agenda-card-head"><h3 style="font-size:16px;">Em andamento</h3><button class="text-link" onclick="goTo('biblioteca-livros')">ver biblioteca</button></div>
+        ${STORE.livros.length ? progressCard({ titulo: STORE.livros[0].titulo, pct: 68, color: C.lavender }, 'livros') : '<p style="font-size:12px; color:var(--muted);">Nenhum livro ativo.</p>'}
+      </section>
+      <section class="card">
+        <h3 style="font-size:16px; margin-bottom:14px;">Sua coleção</h3>
+        <div class="stat-grid" style="grid-template-columns:repeat(2,1fr);"><div class="stat-card"><div class="stat-label">Livros</div><div class="stat-value">${STORE.livros.length}</div></div><div class="stat-card"><div class="stat-label">Séries e filmes</div><div class="stat-value">${STORE.filmes.length}</div></div></div>
+      </section>`;
+  } else if (topic.id === 'trabalho') {
+    intro = 'Prioridades, projetos e notas do seu dia de trabalho.';
+    const workTasks = STORE.tarefas.filter(t => t.area === 'trabalho').slice(0, 3);
+    overview = `
+      <section class="card wide"><div class="agenda-card-head"><h3 style="font-size:16px;">Prioridades de hoje</h3><button class="text-link" onclick="goTo('trabalho-tarefas')">ver tarefas</button></div>
+        ${workTasks.map(t => taskRow(t)).join('') || '<p style="font-size:12px; color:var(--muted); padding:10px 0;">Nenhuma tarefa pendente de trabalho!</p>'}
+      </section>
+      <section class="card"><div class="agenda-card-head"><h3 style="font-size:16px;">Projetos ativos</h3><button class="text-link" onclick="goTo('trabalho-projetos')">ver projetos</button></div>${STORE.projetos.slice(0, 2).map(p => progressCard({ titulo: p.titulo, pct: 70, color: C.purple }, 'projetos')).join('')}</section>`;
+  } else if (topic.id === 'faculdade') {
+    intro = 'Veja suas disciplinas, prazos e evolução acadêmica.';
+    const facTasks = STORE.tarefas.filter(t => t.area === 'faculdade');
+    overview = `
+      <section class="card"><div class="agenda-card-head"><h3 style="font-size:16px;">Próximos prazos</h3><button class="text-link" onclick="goTo('faculdade-provas')">ver todos</button></div>
+        ${facTasks.map(t => taskRow(t)).join('') || '<p style="font-size:12px; color:var(--muted); padding:10px 0;">Sem provas ou entregas cadastradas.</p>'}
+      </section>
+      <section class="card"><div class="agenda-card-head"><h3 style="font-size:16px;">TCC</h3><button class="text-link" onclick="goTo('faculdade-tcc')">abrir TCC</button></div>${progressCard({ titulo: 'Sistemas de Informação', pct: 40, color: C.lavender }, 'metas')}</section>`;
+  } else if (topic.id === 'conteudo') {
+    intro = 'Centralize as ideias e acompanhe sua produção.';
+    const contTasks = STORE.tarefas.filter(t => t.area === 'conteudo');
+    overview = `
+      <section class="card wide"><div class="agenda-card-head"><h3 style="font-size:16px;">Ideias e Planejados</h3><button class="text-link" onclick="goTo('conteudo-ideias')">abrir ideias</button></div>${contTasks.map(t => taskRow(t)).join('') || '<p style="font-size:12px; color:var(--muted); padding:10px 0;">Nenhuma ideia em andamento.</p>'}</section>`;
+  } else if (topic.id === 'viagens') {
+    intro = 'Planeje viagens, roteiros e orçamentos em um único lugar.';
+    overview = `
+      <section class="card"><div class="agenda-card-head"><h3 style="font-size:16px;">Próxima viagem</h3></div><div style="font-size:28px; margin:12px 0 8px;">&#9992;</div><div style="font-size:13px;">Ainda não há viagem marcada</div></section>`;
+  } else if (topic.id === 'financas') {
+    intro = 'Uma visão rápida da sua vida financeira.';
+    overview = `
+      <section class="card wide"><div class="agenda-card-head"><h3 style="font-size:16px;">Resumo do mês</h3><button class="text-link" onclick="goTo('financas-transacoes')">ver transações</button></div><div class="stat-grid"><div class="stat-card"><div class="stat-label">Saldo</div><div class="stat-value">R$ 4.820</div></div><div class="stat-card"><div class="stat-label">Entradas</div><div class="stat-value" style="color:var(--sage);">R$ 6.200</div></div><div class="stat-card"><div class="stat-label">Saídas</div><div class="stat-value" style="color:var(--blush);">R$ 3.740</div></div><div class="stat-card"><div class="stat-label">Fatura</div><div class="stat-value">R$ 980</div></div></div></section>
+      <section class="card wide"><div class="agenda-card-head"><h3 style="font-size:16px;">Transações recentes</h3><button class="text-link" onclick="openAddModal('financas')">+ Nova</button></div>${STORE.financas.map(f => taskRow(f, 'financas')).join('')}</section>`;
+  }
+
+  const navigation = topic.id === 'projetos'
+    ? `<div class="topic-tabs">${topic.children.map((child, index) => dashboardTab(topic, child, index)).join('')}</div>`
+    : '';
+  const shortcuts = topic.id === 'projetos'
+    ? ''
+    : `<div class="agenda-shortcuts">${topic.children.map((child, index) => dashboardShortcut(topic, child, index)).join('')}</div>`;
+  return coverHeader(topic) + `<p class="dashboard-note">${intro}</p>${navigation}<div class="topic-dashboard-grid">${overview}</div>${shortcuts}`;
+}
+
+function renderAgendaDashboard(topic) {
+  const days = [
+    ['SEG', '14'], ['TER', '15'], ['QUA', '16'], ['QUI', '17'], ['SEX', '18'], ['SÁB', '19'], ['DOM', '20']
+  ];
+  return coverHeader(topic) + `
+    <div class="agenda-grid">
+      <section class="card agenda-calendar">
+        <div class="agenda-card-head">
+          <div><h3 style="font-size:16px;">Setembro 2026</h3><div style="font-size:11px; color:var(--muted); margin-top:3px;">Sua semana em um só lugar</div></div>
+          <button class="text-link" onclick="goTo('agenda-home')">ver calendário</button>
+        </div>
+        <div class="calendar-week">
+          ${days.map((day, index) => `<div class="calendar-day ${index === 0 ? 'today' : ''}"><span>${day[0]}</span><strong>${day[1]}</strong>${[0,2,4].includes(index) ? '<div class="calendar-event"></div>' : ''}</div>`).join('')}
+        </div>
+        ${STORE.tarefas.slice(0, 4).map(t => taskRow(t)).join('')}
+      </section>
+      <section class="card">
+        <div class="agenda-card-head"><h3 style="font-size:16px;">Hábitos</h3><button class="text-link" onclick="openAddModal('habitos')">+ Novo</button></div>
+        ${STORE.habitos.map(h => progressCard(h, 'habitos')).join('')}
+      </section>
+      <section class="card">
+        <div class="agenda-card-head"><h3 style="font-size:16px;">Tarefas de hoje</h3><button class="text-link" onclick="openAddModal('tarefas')">+ Nova</button></div>
+        ${STORE.tarefas.slice(0, 3).map(t => taskRow(t)).join('')}
+      </section>
+    </div>
+  `;
+}
+
+function taskCardHorizontal(t) {
+  return `<div style="min-width:180px; background:#fff; border:1px solid var(--border); border-radius:16px; padding:14px; position:relative; display:flex; flex-direction:column; justify-content:space-between; flex-shrink:0;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <div class="checkbox ${t.done ? 'done' : ''}" onclick="toggleTask('${t.id}')"></div>
+      <button class="delete-btn" onclick="deleteItem('tarefas', '${t.id}', event)" title="Excluir" style="font-size:14px; padding:2px 4px;">&times;</button>
+    </div>
+    <div style="font-size:12.5px; margin-bottom:10px; font-weight:500; ${t.done ? 'color:var(--muted); text-decoration:line-through;' : ''}">${t.titulo}</div>
+    <div>${badge(t.tag || t.area || 'Geral', t.tagColor || C.purple)}</div>
+  </div>`;
+}
+
+/* ---------------- Pages ---------------- */
+function pageInicio() {
+  let list = STORE.tarefas;
+  if (searchQuery) {
+    list = list.filter(t => t.titulo.toLowerCase().includes(searchQuery));
+  } else if (activeCategoryFilter !== 'Todas') {
+    list = list.filter(t => (t.area || t.tag || '').toLowerCase() === activeCategoryFilter.toLowerCase());
+  }
+
+  return `
+    <div class="page-eyebrow">segunda-feira, 14 de setembro de 2026</div>
+    <h1 style="font-size:28px; margin-top:2px;">Bom dia, Rhay &#9825;</h1>
+    <p style="font-size:13px; color:var(--muted); margin-top:4px;">Pequenos passos todos os dias constroem grandes sonhos.</p>
+
+    <div style="border-radius:28px; background:linear-gradient(120deg, var(--lavender), var(--blush) 55%, var(--peach)); padding:32px; margin:20px 0; display:flex; align-items:center; justify-content:space-between; min-height:110px;">
+      <div><div style="font-size:11px; color:#fff;">foto da Home</div><div style="font-size:13px; color:#fff; opacity:.9;">clique pra trocar</div></div>
+      <svg width="110" height="86" viewBox="0 0 150 120"><circle cx="60" cy="60" r="42" fill="#fff" fill-opacity="0.35"/><circle cx="105" cy="35" r="20" fill="#fff" fill-opacity="0.5"/></svg>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <h3 style="font-size:15px; margin-bottom:10px;">Currently &#9825;</h3>
+      <div style="display:flex; gap:22px; flex-wrap:wrap; font-size:12.5px; color:var(--muted);">
+        <div>&#127911; CHIHIRO — Billie Eilish</div><div>&#128214; ${STORE.livros[0] ? STORE.livros[0].titulo : 'Água Viva'}</div><div>&#127916; ${STORE.filmes[0] ? STORE.filmes[0].titulo : 'The Bear'}</div>
+      </div>
+    </div>
+
+    <!-- Tarefas de hoje -->
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+      <h3 style="font-size:15px;">Tarefas de hoje</h3>
+      <span style="font-size:11px; color:var(--purple); cursor:pointer;" onclick="goTo('agenda-tarefas')">ver todas</span>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+      ${['Todas', 'Trabalho', 'Faculdade', 'Conteúdo', 'Finanças'].map(cat => `
+        <button style="padding:6px 14px; border-radius:999px; font-size:11.5px; cursor:pointer; border:1px solid var(--border); ${activeCategoryFilter === cat ? 'background:var(--ink); color:#fff;' : 'background:#fff; color:var(--purple);'}" onclick="activeCategoryFilter='${cat}'; renderContent();">${cat}</button>
+      `).join('')}
+    </div>
+
+    <div style="display:flex; gap:12px; overflow-x:auto; padding-bottom:6px; margin-bottom:24px;">
+      ${list.length ? list.map(t => taskCardHorizontal(t)).join('') : '<p style="font-size:12px; color:var(--muted); padding:10px;">Nenhuma tarefa encontrada.</p>'}
+    </div>
+
+    <!-- Agenda de hoje -->
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+      <h3 style="font-size:15px;">Agenda de hoje</h3>
+      <span style="font-size:11px; color:var(--purple); cursor:pointer;" onclick="goTo('agenda-home')">ver semana</span>
+    </div>
+    <div class="card" style="margin-bottom:24px;">
+      <div class="list-row"><span style="font-size:11px; color:var(--muted); width:38px;">09:00</span><span style="width:6px;height:6px;border-radius:50%;background:var(--peach);"></span><span style="font-size:12.5px;">Café com a família</span></div>
+      <div class="list-row"><span style="font-size:11px; color:var(--muted); width:38px;">11:00</span><span style="width:6px;height:6px;border-radius:50%;background:var(--lavender);"></span><span style="font-size:12.5px;">Estudar para a prova</span></div>
+      <div class="list-row"><span style="font-size:11px; color:var(--muted); width:38px;">16:00</span><span style="width:6px;height:6px;border-radius:50%;background:var(--purple);"></span><span style="font-size:12.5px;">Planejar a semana</span></div>
+    </div>
+
+    <!-- Metas em progresso + uma lembrança ♡ -->
+    <div style="display:grid; grid-template-columns: 1.3fr 1fr; gap:16px;">
+      <div class="card">
+        <h3 style="font-size:15px; margin-bottom:14px;">Metas em progresso</h3>
+        ${STORE.metas.slice(0, 2).map(m => progressCard(m, 'metas')).join('')}
+      </div>
+      <div class="card" style="background:linear-gradient(150deg, var(--blush), var(--lavender)); color:#fff; display:flex; flex-direction:column; justify-content:center;">
+        <h3 style="font-size:15px; color:#fff;">uma lembrança &#9825;</h3>
+        <p style="font-size:11.5px; margin-top:6px; opacity:.9;">Dias assim me lembram o porquê de tudo.</p>
+      </div>
+    </div>
+  `;
+}
+
+const PAGES = {
+  'agenda-home': () => pageHeader('Agenda', 'Calendário', 'tarefas') + `<div class="card">
+      ${STORE.tarefas.map(t => taskRow(t)).join('')}
+    </div>`,
+  'agenda-tarefas': () => pageHeader('Agenda', 'Tarefas', 'tarefas') + `<div class="card">
+      ${STORE.tarefas.length ? STORE.tarefas.map(t => taskRow(t)).join('') : emptyState('Nenhuma tarefa por aqui ainda.', 'tarefas')}
+    </div>`,
+  'agenda-habitos': () => pageHeader('Agenda', 'Hábitos', 'habitos') + `<div class="card">
+      ${STORE.habitos.length ? STORE.habitos.map(h => progressCard(h, 'habitos')).join('') : emptyState('Nenhum hábito cadastrado.', 'habitos')}
+    </div>`,
+  'biblioteca-livros': () => pageHeader('Biblioteca', 'Livros', 'livros') + `<div class="gallery-grid">
+      ${STORE.livros.map(l => galleryCard(l, 'livros')).join('')}
+      <div class="gallery-card" onclick="openAddModal('livros')" style="display:flex; align-items:center; justify-content:center; height:150px; background:var(--bg); border:1px dashed var(--border); color:#B3AFC2;">+ Adicionar Livro</div>
+    </div>`,
+  'biblioteca-filmes': () => pageHeader('Biblioteca', 'Filmes & Séries', 'filmes') + `<div class="gallery-grid">
+      ${STORE.filmes.map(f => galleryCard(f, 'filmes')).join('')}
+      <div class="gallery-card" onclick="openAddModal('filmes')" style="display:flex; align-items:center; justify-content:center; height:150px; background:var(--bg); border:1px dashed var(--border); color:#B3AFC2;">+ Adicionar Filme</div>
+    </div>`,
+  'diario': () => coverHeader(findTopic('diario')) + `<div class="empty-state"><div style="font-size:28px;">&#128274;</div><p>Este espaço é só seu. Digite seu PIN pra entrar.</p><button class="btn btn-primary">Desbloquear</button></div>`,
+  'saude': () => coverHeader(findTopic('saude')) + emptyState('Nada por aqui ainda — este espaço é privado, só seu.', 'habitos'),
+  'metas': () => coverHeader(findTopic('metas')) + `<div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="font-size:15px;">Suas Metas</h3>
+        <button class="btn btn-primary" onclick="openAddModal('metas')">+ Nova Meta</button>
+      </div>
+      ${STORE.metas.length ? STORE.metas.map(m => progressCard(m, 'metas')).join('') : emptyState('Nenhuma meta cadastrada.', 'metas')}
+    </div>`,
+  'trabalho-tarefas': () => pageHeader('Trabalho', 'Tarefas', 'tarefas') + `<div class="card">
+      ${STORE.tarefas.filter(t => t.area === 'trabalho').map(t => taskRow(t)).join('') || emptyState('Nenhuma tarefa de trabalho.', 'tarefas')}
+    </div>`,
+  'trabalho-projetos': () => pageHeader('Trabalho', 'Projetos', 'projetos') + `<div class="gallery-grid">
+      ${STORE.projetos.map(p => galleryCard(p, 'projetos')).join('')}
+    </div>`,
+  'trabalho-notas': () => pageHeader('Trabalho', 'Notas', 'notas') + emptyState('Suas anotações de trabalho aparecem aqui.', 'notas'),
+  'faculdade-provas': () => pageHeader('Faculdade', 'Provas & Trabalhos', 'tarefas') + `<div class="card">
+      ${STORE.tarefas.filter(t => t.area === 'faculdade').map(t => taskRow(t)).join('') || emptyState('Nenhuma prova ou trabalho.', 'tarefas')}
+    </div>`,
+  'faculdade-tcc': () => pageHeader('Faculdade', 'TCC', 'metas') + `<div class="card">${STORE.metas.slice(0, 1).map(m => progressCard(m, 'metas')).join('')}</div>`,
+  'conteudo-ideias': () => pageHeader('Criação de Conteúdo', 'Ideias', 'tarefas') + `<div class="card">
+      ${STORE.tarefas.filter(t => t.area === 'conteudo').map(t => taskRow(t)).join('') || emptyState('Nenhuma ideia cadastrada.', 'tarefas')}
+    </div>`,
+  'projetos': () => coverHeader(findTopic('projetos')) + `<div class="gallery-grid">
+      ${STORE.projetos.map(p => galleryCard(p, 'projetos')).join('')}
+      <div class="gallery-card" onclick="openAddModal('projetos')" style="display:flex; align-items:center; justify-content:center; height:150px; background:var(--bg); border:1px dashed var(--border); color:#B3AFC2;">+ Novo Projeto</div>
+    </div>`,
+  'financas-visao': () => pageHeader('Finanças', 'Visão geral', 'financas') + `
+    <div class="stat-grid" style="margin-bottom:18px;">
+      <div class="stat-card"><div class="stat-label">Saldo</div><div class="stat-value">R$ 4.820</div></div>
+      <div class="stat-card"><div class="stat-label">Entradas (mês)</div><div class="stat-value" style="color:var(--sage);">R$ 6.200</div></div>
+      <div class="stat-card"><div class="stat-label">Saídas (mês)</div><div class="stat-value" style="color:var(--blush);">R$ 3.740</div></div>
+      <div class="stat-card"><div class="stat-label">Fatura atual</div><div class="stat-value">R$ 980</div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:15px;">Transações Registradas</h3>
+        <button class="btn btn-primary" onclick="openAddModal('financas')">+ Adicionar Transação</button>
+      </div>
+      ${STORE.financas.map(f => taskRow(f, 'financas')).join('')}
+    </div>`,
+  'financas-transacoes': () => pageHeader('Finanças', 'Transações', 'financas') + `<div class="card">
+      ${STORE.financas.map(f => taskRow(f, 'financas')).join('')}
+    </div>`,
+  'financas-metas': () => pageHeader('Finanças', 'Metas financeiras', 'metas') + `<div class="card">${STORE.metas.map(m => progressCard(m, 'metas')).join('')}</div>`,
+};
+
+function renderContent() {
+  let html;
+  if (currentPage === 'inicio') html = pageInicio();
+  else {
+    const topic = findTopic(currentPage);
+    if (topic && topic.children) html = renderGroupLanding(topic);
+    else if (PAGES[currentPage]) html = PAGES[currentPage]();
+    else html = pageInicio();
+  }
+  document.getElementById('content').innerHTML = html;
+}
+
+renderSidebar();
+renderContent();
+</script>
+</body>
+</html>
