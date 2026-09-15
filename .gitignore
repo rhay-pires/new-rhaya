@@ -1,0 +1,16 @@
+# Arquivos de banco de dados SQLite gerados localmente (não sobem pro Git!)
+*.db
+*.sqlite
+*.sqlite3
+
+# Arquivos de configuração de ambiente e segredos
+.env
+.env.local
+
+# Dependências (caso venha a instalar pacotes npm no futuro)
+node_modules/
+npm-debug.log*
+
+# Arquivos temporários de sistema
+Thumbs.db
+.DS_Store
