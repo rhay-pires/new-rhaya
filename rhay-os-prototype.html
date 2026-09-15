@@ -175,6 +175,20 @@
     .menu-btn { display:flex; }
   }
 
+  /* ---------- Hover & Modo Edição CSS ---------- */
+  .cover-btn { opacity: 0; transition: opacity .2s ease; }
+  .page-cover:hover .cover-btn, body.edit-mode .cover-btn { opacity: 1; }
+
+  .home-banner { position: relative; overflow: hidden; }
+  .home-banner-overlay { position: absolute; inset: 0; border-radius: inherit; background: rgba(37,35,51,0.45); backdrop-filter: blur(3px); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 500; opacity: 0; transition: opacity .2s ease; cursor: pointer; }
+  .home-banner:hover .home-banner-overlay, body.edit-mode .home-banner-overlay { opacity: 1; }
+
+  .profile-card { position: relative; transition: background .15s ease; }
+  .profile-avatar-badge { position: absolute; bottom: 8px; left: 28px; width: 16px; height: 16px; border-radius: 50%; background: var(--purple); color: #fff; font-size: 9px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .2s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+  .profile-card:hover .profile-avatar-badge, body.edit-mode .profile-avatar-badge { opacity: 1; }
+
+  .icon-btn.active { background: var(--purple); color: #fff; border-color: var(--purple); }
+
   ::-webkit-scrollbar { width:8px; }
   ::-webkit-scrollbar-thumb { background:#E3E0DC; border-radius:8px; }
 </style>
@@ -191,6 +205,7 @@
         <div class="search">&#8981;&nbsp; <input type="text" id="searchInput" placeholder="Buscar em tudo..." oninput="handleSearch(this.value)" /></div>
       </div>
       <div class="topbar-right">
+        <button class="icon-btn" id="editModeBtn" onclick="toggleEditMode()" title="Modo Edição">⚙️</button>
         <div class="icon-btn">&#128276;</div>
         <button class="add-btn" onclick="openAddModal('tarefas')">+ Adicionar</button>
       </div>
@@ -428,9 +443,10 @@ function renderSidebar() {
   const avatarBg = STORE.profileImage 
     ? `background-image:url('${STORE.profileImage}'); background-size:cover; background-position:center; color:transparent;` 
     : '';
-  html += `<div class="profile-card" onclick="triggerProfileUpload()" style="cursor:pointer;" title="Clique para trocar foto de perfil">
+  html += `<div class="profile-card" onclick="triggerProfileUpload()" style="cursor:pointer;" title="Clique para alterar foto de perfil">
     <div class="avatar" style="${avatarBg}">R</div>
-    <div><div style="font-size:12px;">Rhay</div><div style="font-size:10px; color:var(--muted);">Trocar foto 📷</div></div>
+    <div class="profile-avatar-badge">📷</div>
+    <div><div style="font-size:12px; font-weight:600;">Rhay</div><div style="font-size:10px; color:var(--muted);">Perfil</div></div>
   </div>`;
   el.innerHTML = html;
 }
@@ -594,10 +610,38 @@ function handleHomeBannerUpload(e) {
   reader.readAsDataURL(file);
 }
 
+/* ---------------- Modo Edição Toggle ---------------- */
+let isEditMode = false;
+
+function toggleEditMode() {
+  isEditMode = !isEditMode;
+  if (isEditMode) {
+    document.body.classList.add('edit-mode');
+  } else {
+    document.body.classList.remove('edit-mode');
+  }
+  updateEditModeBtn();
+  renderSheet();
+}
+
+function updateEditModeBtn() {
+  const btn = document.getElementById('editModeBtn');
+  if (btn) {
+    if (isEditMode) {
+      btn.classList.add('active');
+      btn.title = "Modo Edição Ativado (Clique para desativar)";
+    } else {
+      btn.classList.remove('active');
+      btn.title = "Ativar Modo Edição";
+    }
+  }
+}
+
 /* ---------------- Mobile sheet ---------------- */
 function renderSheet() {
   let html = `<div class="sheet-handle"></div>`;
   html += `<div class="sheet-row" onclick="goTo('inicio')"><span>${INICIO.emoji}</span><span>Início</span></div>`;
+  html += `<div class="sheet-row" onclick="toggleEditMode()"><span>⚙️</span><span>Modo Edição (${isEditMode ? 'Ativado' : 'Desativado'})</span></div>`;
   TOPICS.forEach(topic => {
     if (topic.hidden) return;
     if (topic.children && !topic.hideChildren) {
@@ -993,9 +1037,10 @@ function pageInicio() {
     <h1 style="font-size:28px; margin-top:2px;">Bom dia, Rhay &#9825;</h1>
     <p style="font-size:13px; color:var(--muted); margin-top:4px;">Pequenos passos todos os dias constroem grandes sonhos.</p>
 
-    <div onclick="triggerHomeBannerUpload()" style="border-radius:28px; ${homeBannerStyle} padding:32px; margin:20px 0; display:flex; align-items:center; justify-content:space-between; min-height:110px; cursor:pointer;" title="Clique para trocar a foto da Home">
-      <div><div style="font-size:11px; color:#fff;">foto da Home</div><div style="font-size:13px; color:#fff; opacity:.9;">📷 clique pra trocar foto</div></div>
+    <div class="home-banner" onclick="triggerHomeBannerUpload()" style="border-radius:28px; ${homeBannerStyle} padding:32px; margin:20px 0; display:flex; align-items:center; justify-content:space-between; min-height:110px; cursor:pointer;" title="Clique para trocar a foto da Home">
+      <div><div></div></div>
       <svg width="110" height="86" viewBox="0 0 150 120"><circle cx="60" cy="60" r="42" fill="#fff" fill-opacity="0.35"/><circle cx="105" cy="35" r="20" fill="#fff" fill-opacity="0.5"/></svg>
+      <div class="home-banner-overlay">📷 Alterar Foto da Home</div>
     </div>
 
     <div class="card" style="margin-bottom:20px;">
